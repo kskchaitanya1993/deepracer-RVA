@@ -31,7 +31,7 @@ def reward_function(params):
         if base == 0:
             distance = (0.5/base) * (side1 + base + side2)**0.5 * (-side1 + base + side2)**0.5 * (side1 - base + side2)**0.5 * (side1 + base - side2)**0.5
         else:
-            distance = base
+            distance = side1
         
         return abs(distance)
     
