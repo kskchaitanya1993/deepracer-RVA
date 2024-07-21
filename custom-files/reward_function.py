@@ -28,9 +28,9 @@ def reward_function(params):
 
         # Use Herons formula to calculate the height of triangle if racing line is the base
         # h = (0.5/b) * sqrt(a+b+c) * sqrt(-a+b+c) * sqrt(a-b+c) * sqrt(a+b-c)
-        if base == 0:
+        try:
             distance = (0.5/base) * (side1 + base + side2)**0.5 * (-side1 + base + side2)**0.5 * (side1 - base + side2)**0.5 * (side1 + base - side2)**0.5
-        else:
+        except:
             distance = side1
         
         return abs(distance)
