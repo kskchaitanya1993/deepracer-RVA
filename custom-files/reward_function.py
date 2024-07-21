@@ -19,20 +19,21 @@ def reward_function(params):
         return [closest_racing_index, sec_closest_racing_index]
     
     def dist_to_racing_line(closest_coor, second_closest_coor, car_coor):
-            
-            # Calculate the distances between 2 closest racing points
-            base = dist_bw_points(closest_coor[0], second_closest_coor[0], closest_coor[1], second_closest_coor[1])
+        # Calculate the distances between 2 closest racing points
+        base = dist_bw_points(closest_coor[0], second_closest_coor[0], closest_coor[1], second_closest_coor[1])
 
-            # Distances between car and closest and second closest racing point
-            side1 = dist_bw_points(car_coor[0], closest_coor[0], car_coor[1], closest_coor[1])
-            side2 = dist_bw_points(car_coor[0], second_closest_coor[0], car_coor[1], second_closest_coor[1])
+        # Distances between car and closest and second closest racing point
+        side1 = dist_bw_points(car_coor[0], closest_coor[0], car_coor[1], closest_coor[1])
+        side2 = dist_bw_points(car_coor[0], second_closest_coor[0], car_coor[1], second_closest_coor[1])
 
-            # Use Herons formula to calculate the height of triangle if racing line is the base
-            # h = (0.5/b) * sqrt(a+b+c) * sqrt(-a+b+c) * sqrt(a-b+c) * sqrt(a+b-c)
-
+        # Use Herons formula to calculate the height of triangle if racing line is the base
+        # h = (0.5/b) * sqrt(a+b+c) * sqrt(-a+b+c) * sqrt(a-b+c) * sqrt(a+b-c)
+        if base == 0:
             distance = (0.5/base) * (side1 + base + side2)**0.5 * (-side1 + base + side2)**0.5 * (side1 - base + side2)**0.5 * (side1 + base - side2)**0.5
-            
-            return abs(distance)
+        else:
+            distance = base
+        
+        return abs(distance)
     
     # Read input parameters
     distance_from_center = params['distance_from_center']
