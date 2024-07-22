@@ -34,18 +34,6 @@ def reward_function(params):
             distance = side1
         
         return abs(distance)
-    
-    # Read input parameters
-    distance_from_center = params['distance_from_center']
-    track_width = params['track_width']
-    steering = abs(params['steering_angle']) # Only need the absolute steering angle
-    car_xy = [params['x'], params['y']]
-    is_offtrack = params['is_offtrack']
-    is_left_of_center = params['is_left_of_center']
-    # Calculate 3 marks that are farther and father away from the center line
-    marker_1 = 0.1 * track_width
-    marker_2 = 0.25 * track_width
-    marker_3 = 0.5 * track_width
     racing_track = [[ 5.04771315,  0.73385354],
        [ 5.04770565,  0.86385354],
        [ 5.04752488,  1.00379612],
@@ -202,32 +190,46 @@ def reward_function(params):
        [ 5.04774594,  0.26056334],
        [ 5.04772305,  0.56220838],
        [ 5.04771315,  0.73385354]]
+    
+    # Read input parameters
+    distance_from_center = params['distance_from_center']
+    track_width = params['track_width']
+    steering = abs(params['steering_angle']) # Only need the absolute steering angle
+    car_xy = [params['x'], params['y']]
+    is_offtrack = params['is_offtrack']
+    is_left_of_center = params['is_left_of_center']
+    closest_waypoints = params[closest_waypoints]
+    # Calculate 3 marks that are farther and father away from the center line
+    tenth_width = 0.1 * track_width
+    quarter_width = 0.25 * track_width
+    half_width = 0.5 * track_width
+    
     reward = 1
     # Give higher reward if the car is closer to center line and vice versa
-    if distance_from_center <= marker_1:
-        reward = 0.5
-    elif distance_from_center <= marker_2:
-        reward = 0.25
-    elif distance_from_center <= marker_3:
-        reward = 0.05
+    if distance_from_center <= tenth_width:
+        reward += 0.5
+    elif distance_from_center <= quarter_width:
+        reward += 0.25
+    elif distance_from_center <= half_width:
+        reward += 0.05
     
     closest_index, second_closest_index = closest_indexes(racing_track, car_xy)
     racing_first_coor = racing_track[closest_index]
     racing_second_coor = racing_track[second_closest_index]
 
     dist = dist_to_racing_line(racing_first_coor, racing_second_coor, car_xy)
-    if dist <= marker_1:
-        reward += 1
-    elif distance_from_center <= marker_2:
-        reward += 0.5
-    elif distance_from_center <= marker_3:
-        reward += 0.25
+    if dist <= tenth_width:
+        reward += 2
+    elif dist <= quarter_width:
+        reward += 1.5
+    elif dist <= half_width:
+        reward += 0.8
     else:
         # penalize for going too far
-        reward *= 0.8
+        reward *= 0.02
 
-    # include left bias
-    if is_left_of_center:
+    # include left bias for most of the track except the U turn
+    if ((not is_left_of_center) and closest_waypoints[0] > 60 and closest_waypoints[0] < 80) or (is_left_of_center and (closest_waypoints[0] < 60 or closest_waypoints[0] > 80)):
         reward += 0.05
 
     # Steering penality threshold, change the number based on your action space setting
