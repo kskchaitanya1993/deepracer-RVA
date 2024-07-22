@@ -204,15 +204,7 @@ def reward_function(params):
     tenth_width = 0.1 * track_width
     quarter_width = 0.25 * track_width
     half_width = 0.5 * track_width
-    
     reward = 1
-    # Give higher reward if the car is closer to center line and vice versa
-    if distance_from_center <= tenth_width:
-        reward += 0.5
-    elif distance_from_center <= quarter_width:
-        reward += 0.25
-    elif distance_from_center <= half_width:
-        reward += 0.05
     
     closest_index, second_closest_index = closest_indexes(racing_track, car_xy)
     racing_first_coor = racing_track[closest_index]
@@ -229,8 +221,8 @@ def reward_function(params):
         # penalize for going too far
         reward *= 0.02
 
-    # include left bias for most of the track except the U turn
-    if ((not is_left_of_center) and closest_waypoints[0] > 60 and closest_waypoints[0] < 80) or (is_left_of_center and (closest_waypoints[0] < 60 or closest_waypoints[0] > 80)):
+    # include left bias for most of the track except the middle U turn
+    if ((not is_left_of_center) and 60 <= closest_waypoints[0] <= 80) or (is_left_of_center and (closest_waypoints[0] < 60 or closest_waypoints[0] > 80)):
         reward += 0.05
 
     # Steering penality threshold, change the number based on your action space setting
