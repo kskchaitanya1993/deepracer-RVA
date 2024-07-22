@@ -34,6 +34,7 @@ def reward_function(params):
             distance = side1
         
         return abs(distance)
+    
     racing_track = [[ 5.04771315,  0.73385354],
        [ 5.04770565,  0.86385354],
        [ 5.04752488,  1.00379612],
@@ -198,7 +199,7 @@ def reward_function(params):
     car_xy = [params['x'], params['y']]
     is_offtrack = params['is_offtrack']
     is_left_of_center = params['is_left_of_center']
-    closest_waypoints = params[closest_waypoints]
+    closest_waypoints = params['closest_waypoints']
     # Calculate 3 marks that are farther and father away from the center line
     tenth_width = 0.1 * track_width
     quarter_width = 0.25 * track_width
