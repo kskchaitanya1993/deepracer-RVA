@@ -233,8 +233,8 @@ def reward_function(params):
         reward += 0.5
     
     # reward for making progress in less steps and fast
-    if all_wheels_on_track and steps > 0:
-        reward += ((progress / steps) * 100  + speed ** 2)
+    if not is_offtrack and steps > 0:
+        reward += ((progress / steps) * 100  + speed ** 2) / 10
     
     # Steering penality threshold, change the number based on your action space setting
     ABS_STEERING_THRESHOLD = 10
@@ -243,7 +243,7 @@ def reward_function(params):
         reward *= 0.8
     
     # Penalize reward if the car is off track
-    if is_offtrack or not all_wheels_on_track:
+    if is_offtrack:
         reward = 1e-12
 
     return float(reward)
