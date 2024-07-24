@@ -200,7 +200,12 @@ def reward_function(params):
     is_offtrack = params['is_offtrack']
     is_left_of_center = params['is_left_of_center']
     closest_waypoints = params['closest_waypoints']
+    progress = params['progress']
+    steps = params["steps"]
+    speed = params["speed"]
+    all_wheels_on_track = params["all_wheels_on_track"]
     # Calculate 3 marks that are farther and father away from the center line
+    fifth_width = 0.05 * track_width
     tenth_width = 0.1 * track_width
     quarter_width = 0.25 * track_width
     half_width = 0.5 * track_width
@@ -211,29 +216,34 @@ def reward_function(params):
     racing_second_coor = racing_track[second_closest_index]
 
     dist = dist_to_racing_line(racing_first_coor, racing_second_coor, car_xy)
-    if dist <= tenth_width:
-        reward += 2
+    if dist <= fifth_width:
+        reward +=20
+    elif dist <= tenth_width:
+        reward += 10
     elif dist <= quarter_width:
         reward += 1.5
     elif dist <= half_width:
-        reward += 0.8
+        reward += 0.5
     else:
         # penalize for going too far
-        reward *= 0.02
+        reward *= 0.0002
 
     # include left bias for most of the track except the middle U turn
-    if ((not is_left_of_center) and 60 <= closest_waypoints[0] <= 80) or (is_left_of_center and (closest_waypoints[0] < 60 or closest_waypoints[0] > 80)):
-        reward += 0.05
-
+    if ((not is_left_of_center) and 60 <= closest_waypoints[1] <= 80) or (is_left_of_center and (closest_waypoints[1] < 60 or closest_waypoints[1] > 80)):
+        reward += 0.5
+    
+    # reward for making progress in less steps and fast
+    if all_wheels_on_track and steps > 0:
+        reward += ((progress / steps) * 100  + speed ** 2)
+    
     # Steering penality threshold, change the number based on your action space setting
-    ABS_STEERING_THRESHOLD = 15
-
+    ABS_STEERING_THRESHOLD = 10
     # Penalize reward if the car is steering too much
     if steering > ABS_STEERING_THRESHOLD:
         reward *= 0.8
     
     # Penalize reward if the car is off track
-    if is_offtrack:
-        reward = 1e-3
+    if is_offtrack or not all_wheels_on_track:
+        reward = 1e-12
 
     return float(reward)
