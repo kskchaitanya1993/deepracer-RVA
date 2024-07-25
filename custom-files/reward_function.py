@@ -1,3 +1,5 @@
+import math
+
 def reward_function(params):
 
     def dist_bw_points(x1, x2, y1, y2):
@@ -204,6 +206,7 @@ def reward_function(params):
     steps = params["steps"]
     speed = params["speed"]
     all_wheels_on_track = params["all_wheels_on_track"]
+    heading = params['heading']
     # Calculate 3 marks that are farther and father away from the center line
     fifth_width = 0.05 * track_width
     tenth_width = 0.1 * track_width
@@ -219,11 +222,11 @@ def reward_function(params):
     if dist <= fifth_width:
         reward +=20 + 3*speed
     elif dist <= tenth_width:
-        reward += 10 + 2*speed
+        reward += 15 + 2*speed
     elif dist <= quarter_width:
-        reward += 1.5 + 1*speed
+        reward += 10 + 1*speed
     elif dist <= half_width:
-        reward += 0.5 + speed
+        reward += 3 + speed
     else:
         # penalize for going too far
         reward *= 0.0002
@@ -234,16 +237,22 @@ def reward_function(params):
     elif (is_left_of_center and (closest_waypoints[1] < 60 or closest_waypoints[1] > 80)):
         reward += 0.5
     
+    # Calculate the direction in radius, arctan2(dy, dx), the result is (-pi, pi) in radians and Convert to degree
+    racing_direction = math.degrees(math.atan2(racing_track[closest_index+1][1] - racing_track[closest_index][1], racing_track[closest_index+1][0] - racing_track[closest_index][0]))
+    # Calculate the difference between the track direction and the heading direction of the car
+    direction_diff = abs(racing_direction - heading)
+    if direction_diff > 180:
+        direction_diff = 360 - direction_diff
+    
+    # Penalize the reward if the difference is too large
+    if direction_diff < 5:
+        reward *= 3
+    elif direction_diff < 10:
+        reward *= 1.5
+    
     # reward for making progress in less steps and fast
-    if all_wheels_on_track and steps > 0:
-        reward += ((progress / steps) * 100  + speed ** 2)
-    
-    # Steering penality threshold, change the number based on your action space setting
-    ABS_STEERING_THRESHOLD = 10
-    # Penalize reward if the car is steering too much
-    if steering > ABS_STEERING_THRESHOLD:
-        reward *= 0.8
-    
+    if not is_offtrack and steps > 0:
+        reward += ((progress / steps) * 100  + speed ** 2) / 10
     # Penalize reward if the car is off track
     if is_offtrack:
         reward = 1e-12
