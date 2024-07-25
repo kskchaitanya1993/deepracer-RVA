@@ -217,24 +217,26 @@ def reward_function(params):
 
     dist = dist_to_racing_line(racing_first_coor, racing_second_coor, car_xy)
     if dist <= fifth_width:
-        reward +=20
+        reward +=20 + 3*speed
     elif dist <= tenth_width:
-        reward += 10
+        reward += 10 + 2*speed
     elif dist <= quarter_width:
-        reward += 1.5
+        reward += 1.5 + 1*speed
     elif dist <= half_width:
-        reward += 0.5
+        reward += 0.5 + speed
     else:
         # penalize for going too far
         reward *= 0.0002
 
     # include left bias for most of the track except the middle U turn
-    if ((not is_left_of_center) and 60 <= closest_waypoints[1] <= 80) or (is_left_of_center and (closest_waypoints[1] < 60 or closest_waypoints[1] > 80)):
+    if ((not is_left_of_center) and 60 <= closest_waypoints[1] <= 80):
+        reward += 0.8
+    elif (is_left_of_center and (closest_waypoints[1] < 60 or closest_waypoints[1] > 80)):
         reward += 0.5
     
     # reward for making progress in less steps and fast
-    if not is_offtrack and steps > 0:
-        reward += ((progress / steps) * 100  + speed ** 2) / 10
+    if all_wheels_on_track and steps > 0:
+        reward += ((progress / steps) * 100  + speed ** 2)
     
     # Steering penality threshold, change the number based on your action space setting
     ABS_STEERING_THRESHOLD = 10
