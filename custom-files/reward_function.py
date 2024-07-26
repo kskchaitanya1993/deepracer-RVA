@@ -1,5 +1,29 @@
 import math
 
+class Reward:
+    def __init__(self, verbose=False, track_time=False):
+        self.prev_steering_angle = 0
+        self.prev_speed = 0
+        
+    def fast_and_smooth(self, params):
+        reward = 0
+        # Steering smoothness
+        prev_steering_angle = self.prev_steering_angle
+        steering_angle = params['steering_angle']
+        self.prev_steering_angle = steering_angle
+        steering_diff = abs(steering_angle - prev_steering_angle)
+        reward_steering_smoothness = math.exp(-0.5 * steering_diff)
+        
+        # speed diff
+        speed = params['speed']
+        if (speed > self.prev_speed) and (self.prev_speed > 0):
+            reward += 10
+        self.prev_speed = speed  # update the previous speed
+        
+        return reward + reward_steering_smoothness
+
+reward_obj = Reward()
+
 def reward_function(params):
 
     def dist_bw_points(x1, x2, y1, y2):
@@ -212,6 +236,7 @@ def reward_function(params):
     tenth_width = 0.1 * track_width
     quarter_width = 0.25 * track_width
     half_width = 0.5 * track_width
+    curb_width = 0.6 * track_width
     reward = 1
     
     closest_index, second_closest_index = closest_indexes(racing_track, car_xy)
@@ -219,23 +244,16 @@ def reward_function(params):
     racing_second_coor = racing_track[second_closest_index]
 
     dist = dist_to_racing_line(racing_first_coor, racing_second_coor, car_xy)
-    if dist <= fifth_width:
-        reward +=20 + 3*speed
-    elif dist <= tenth_width:
-        reward += 15 + 2*speed
-    elif dist <= quarter_width:
-        reward += 10 + 1*speed
-    elif dist <= half_width:
-        reward += 3 + speed
-    else:
-        # penalize for going too far
-        reward += 1.5 + speed
-
-    # include left bias for most of the track except the middle U turn
-    if ((not is_left_of_center) and 60 <= closest_waypoints[1] <= 80):
-        reward += 7
-    elif (is_left_of_center and (closest_waypoints[1] < 60 or closest_waypoints[1] > 80)):
-        reward += 5
+    w1 = 4.0
+    w2 = 1.0
+    
+    if speed < 1.3:
+        w2 = 0.3
+    if speed > 3:
+        w1 +=1
+        
+    reward = w1 * speed + w2 * (1 - dist/quarter_width)
+    reward += 2 * reward_obj.fast_and_smooth(params)
     
     # Calculate the direction in radius, arctan2(dy, dx), the result is (-pi, pi) in radians and Convert to degree
     racing_direction = math.degrees(math.atan2(racing_track[closest_index+1][1] - racing_track[closest_index][1], racing_track[closest_index+1][0] - racing_track[closest_index][0]))
@@ -243,24 +261,14 @@ def reward_function(params):
     direction_diff = abs(racing_direction - heading)
     if direction_diff > 180:
         direction_diff = 360 - direction_diff
-    
-    # Penalize the reward if the difference is too large
-    if direction_diff < 1:
-        reward += 15
-    elif direction_diff < 5:
-        reward += 10
-    elif direction_diff < 10:
-        reward += 5
-    elif direction_diff < 15:
-        reward += 1
-    elif direction_diff > 90:
-        reward = 1e-2
+    reward_alignment = math.cos(math.radians(direction_diff)) * 4
+    reward += reward_alignment
     
     # reward for making progress in less steps and fast
     if not is_offtrack and steps > 0:
         reward += ((progress / steps) * 100  + speed ** 2) / 10
     # Penalize reward if the car is off track
-    if is_offtrack or distance_from_center > half_width:
+    if is_offtrack or distance_from_center > curb_width:
         reward = -1
 
     return float(reward)
