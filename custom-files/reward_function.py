@@ -229,13 +229,13 @@ def reward_function(params):
         reward += 3 + speed
     else:
         # penalize for going too far
-        reward *= 0.0002
+        reward += 1.5 + speed
 
     # include left bias for most of the track except the middle U turn
     if ((not is_left_of_center) and 60 <= closest_waypoints[1] <= 80):
-        reward += 0.8
+        reward += 7
     elif (is_left_of_center and (closest_waypoints[1] < 60 or closest_waypoints[1] > 80)):
-        reward += 0.5
+        reward += 5
     
     # Calculate the direction in radius, arctan2(dy, dx), the result is (-pi, pi) in radians and Convert to degree
     racing_direction = math.degrees(math.atan2(racing_track[closest_index+1][1] - racing_track[closest_index][1], racing_track[closest_index+1][0] - racing_track[closest_index][0]))
@@ -245,16 +245,22 @@ def reward_function(params):
         direction_diff = 360 - direction_diff
     
     # Penalize the reward if the difference is too large
-    if direction_diff < 5:
-        reward *= 3
+    if direction_diff < 1:
+        reward += 15
+    elif direction_diff < 5:
+        reward += 10
     elif direction_diff < 10:
-        reward *= 1.5
+        reward += 5
+    elif direction_diff < 15:
+        reward += 1
+    elif direction_diff > 90:
+        reward = 1e-2
     
     # reward for making progress in less steps and fast
     if not is_offtrack and steps > 0:
         reward += ((progress / steps) * 100  + speed ** 2) / 10
     # Penalize reward if the car is off track
-    if is_offtrack:
-        reward = 1e-12
+    if is_offtrack or distance_from_center > half_width:
+        reward = -1
 
     return float(reward)
