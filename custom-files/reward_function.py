@@ -12,7 +12,7 @@ class Reward:
         steering_angle = params['steering_angle']
         self.prev_steering_angle = steering_angle
         steering_diff = abs(steering_angle - prev_steering_angle)
-        reward_steering_smoothness = math.exp(-0.5 * steering_diff)
+        reward_steering_smoothness = 10 * math.exp(-0.5 * steering_diff)
         
         # speed diff
         speed = params['speed']
