@@ -6,21 +6,19 @@ class Reward:
         self.prev_speed = 0
         
     def fast_and_smooth(self, params):
-        reward = 0
         # Steering smoothness
         prev_steering_angle = self.prev_steering_angle
         steering_angle = params['steering_angle']
         self.prev_steering_angle = steering_angle
         steering_diff = abs(steering_angle - prev_steering_angle)
-        reward_steering_smoothness = 10 * math.exp(-0.5 * steering_diff)
+        reward_steering_smoothness = math.exp(-0.5 * steering_diff)
         
         # speed diff
         speed = params['speed']
-        if (speed > self.prev_speed) and (self.prev_speed > 0):
-            reward += 10
+        accl_reward = speed - self.prev_speed
         self.prev_speed = speed  # update the previous speed
         
-        return reward + reward_steering_smoothness
+        return 4 * accl_reward + 3 * reward_steering_smoothness
 
 reward_obj = Reward()
 
@@ -238,7 +236,7 @@ def reward_function(params):
     half_width = 0.5 * track_width
     curb_width = 0.6 * track_width
     ABS_STEERING_THRESHOLD = 10
-    reward = 10
+    reward = 1
     
     closest_index, second_closest_index = closest_indexes(racing_track, car_xy)
     racing_first_coor = racing_track[closest_index]
@@ -246,34 +244,33 @@ def reward_function(params):
 
     dist = dist_to_racing_line(racing_first_coor, racing_second_coor, car_xy)
     w1 = 4.0
-    w2 = 1.0
+    w2 = 2.0
     
     if speed < 1.5:
         w2 = 0.5
     if speed > 3:
         w1 +=1
         
-    reward += w1 * speed + w2 * (1 - dist/half_width)
-    reward += 2 * reward_obj.fast_and_smooth(params)
+    reward += w1 * speed + w2 * (1 - dist/quarter_width)
+    reward += reward_obj.fast_and_smooth(params)
     
     # Calculate the direction in radius, arctan2(dy, dx), the result is (-pi, pi) in radians and Convert to degree
     racing_direction = math.degrees(math.atan2(racing_track[closest_index+1][1] - racing_track[closest_index][1], racing_track[closest_index+1][0] - racing_track[closest_index][0]))
-    # Calculate the difference between the track direction and the heading direction of the car
+    # Calculate the difference between the racing direction and the heading direction of the car
     direction_diff = abs(racing_direction - heading)
     if direction_diff > 180:
         direction_diff = 360 - direction_diff
-    reward_alignment = math.cos(math.radians(direction_diff)) * 4
+    reward_alignment = math.cos(math.radians(direction_diff))
     reward += 2 * reward_alignment
     
     if steering > ABS_STEERING_THRESHOLD:
         reward *= 0.3
         
     # reward for making progress in less steps and fast
-    if steps > 0:
-        reward += ((progress / steps) * 100  + speed ** 2)
-    
     # Penalize reward if the car is off track
     if is_offtrack or distance_from_center > curb_width:
         reward = -1
+    elif steps > 0:
+        reward += ((progress / steps) * 100  + speed ** 2)
 
     return float(reward)
