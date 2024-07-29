@@ -256,8 +256,8 @@ def reward_function(params):
     time_spent_till_now = steps - 1 / 15
     
     try:
-        reward += (((5 * progress) + (4 * speed) + (2 * reward_obj.acceleration(params)))
-                   / ((5 * time_spent_till_now) + (4 * dist) + (3 * direction_diff) + (1.5 * distance_from_center)))
+        reward += (((5 * progress) + (speed ** 2) + (2 * reward_obj.acceleration(params)))
+                   / ((5 * time_spent_till_now) + (dist ** 2) + (3 * direction_diff) + (0.5 * distance_from_center)))
     except:
         reward += 1e-6
 
