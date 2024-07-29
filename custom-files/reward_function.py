@@ -254,10 +254,10 @@ def reward_function(params):
         direction_diff = 360 - direction_diff
 
     time_spent_till_now = steps - 1 / 15
-    
+
     try:
         reward += (((5 * progress) + (speed ** 2) + (2 * reward_obj.acceleration(params)))
-                   / ((5 * time_spent_till_now) + (dist ** 2) + (3 * direction_diff) + (0.5 * distance_from_center)))
+                   / ((5 * time_spent_till_now) + (4 * dist) + (2 * direction_diff)))
     except:
         reward += 1e-6
 
