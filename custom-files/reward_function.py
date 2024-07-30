@@ -1,5 +1,4 @@
 import math
-import numpy as np
 
 
 class Reward:
@@ -9,7 +8,9 @@ class Reward:
     def acceleration(self, params):
         # speed diff
         speed = params['speed']
-        accl_reward = speed - self.prev_speed
+        accl_reward = 1e-3
+        if (speed > self.prev_speed) and (self.prev_speed > 0.5):
+            accl_reward = speed - self.prev_speed
         self.prev_speed = speed  # update the previous speed
 
         return accl_reward
@@ -247,17 +248,18 @@ def reward_function(params):
     dist = dist_to_racing_line(racing_first_coor, racing_second_coor, car_xy)
 
     # Calculate the direction in radius, arctan2(dy, dx), the result is (-pi, pi) in radians and Convert to degree
-    racing_direction = np.arctan2(
-        racing_track[closest_index+1][1] - racing_track[closest_index][1], racing_track[closest_index+1][0] - racing_track[closest_index][0])
+    racing_direction = math.degrees(math.atan2(
+        racing_track[closest_index+1][1] - racing_track[closest_index][1], racing_track[closest_index+1][0] - racing_track[closest_index][0]))
     # Calculate the difference between the racing direction and the heading direction of the car
     direction_diff = abs(racing_direction - heading)
-    direction_diff = min(direction_diff, 2 * np.pi - direction_diff)
+    if direction_diff > 180:
+        direction_diff = 360 - direction_diff
 
     time_spent_till_now = steps - 1 / 15
 
     try:
-        reward += (((5 * progress) + (speed ** 2) + (2 * reward_obj.acceleration(params)))
-                   / ((5 * time_spent_till_now) + (4 * dist) + (2 * direction_diff)))
+        reward += (((5 * progress) + (speed ** 2) + (1 * reward_obj.acceleration(params)))
+                   / ((6 * time_spent_till_now) + (4 * dist) + (2 * direction_diff)))
     except:
         reward += 1e-6
 
@@ -266,14 +268,4 @@ def reward_function(params):
     if is_offtrack or distance_from_center > curb_width:
         reward = 1e-12
 
-    dist_from_curb = min(distance_from_center,
-                         track_width - distance_from_center)
-    edge_reward = 1 - dist_from_curb/half_width
-    dist_reward = 1 - dist / half_width
-    direction_reward = 1 - direction_diff / np.pi
-    time_penalty = 1 / (steps + 1)
-    center_line_penalty = 1 - distance_from_center
-    steering_penalty = 1 - abs(steering) / 15
-    progress_reward = progress * speed
-    # return float(reward)
-    return float(max(1e-3, progress_reward * edge_reward * dist_reward * direction_reward * time_penalty * center_line_penalty * steering_penalty))
+    return float(reward)
