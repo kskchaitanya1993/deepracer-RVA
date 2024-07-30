@@ -4,13 +4,22 @@ import math
 class Reward:
     def __init__(self, verbose=False, track_time=False):
         self.prev_speed = 0
+        self.prev_accl = 0
 
     def acceleration(self, params):
         # speed diff
         speed = params['speed']
         accl_reward = 1e-3
+        accl = speed - self.prev_speed
         if (speed > self.prev_speed) and (self.prev_speed > 0.5):
             accl_reward = speed - self.prev_speed
+        
+        if accl > self.prev_accl:
+            accl_reward += (accl - self.prev_accl) ** 2
+        else:
+            accl_reward -= (accl - self.prev_accl) ** 2
+        
+        self.prev_accl = accl
         self.prev_speed = speed  # update the previous speed
 
         return accl_reward
