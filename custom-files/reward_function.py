@@ -272,9 +272,14 @@ def reward_function(params):
     except:
         reward += 1e-6
 
+    new_reward = 0
+    if not is_offtrack and steps > 0:
+        new_reward = ((progress / steps) * 100) + (speed**2)
+    else:
+        new_reward = 1e-3
     # reward for making progress in less steps and fast
     # Penalize reward if the car is off track
     if is_offtrack or distance_from_center > curb_width:
         reward = 1e-12
 
-    return float(reward)
+    return float(new_reward)
