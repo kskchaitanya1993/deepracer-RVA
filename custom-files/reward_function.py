@@ -295,7 +295,7 @@ def reward_function(params):
 
     try:
         reward = (progress_reward + accl_reward + edge_reward) / (time_reward + racing_dist_reward + dir_reward + center_reward)
-        reward += speed_reward
+        reward += 2 * speed_reward
     except:
         reward += 1e-6
     # reward for making progress in less steps and fast
