@@ -272,7 +272,7 @@ def reward_function(params):
     if (steering > 5 and is_left_of_center) or (steering < -5 and not is_left_of_center):
         edge_weight += 1
     else:
-        center_reward +=1
+        center_weight +=1
 
     if -4 < steering < 4:
         center_weight += 3
