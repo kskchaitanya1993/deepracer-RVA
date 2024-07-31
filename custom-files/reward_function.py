@@ -13,12 +13,12 @@ class Reward:
         accl = speed - self.prev_speed
         if (speed > self.prev_speed) and (self.prev_speed > 0.5):
             accl_reward = speed - self.prev_speed
-        
-        if accl > self.prev_accl:
+
+        if accl >= self.prev_accl:
             accl_reward += (accl - self.prev_accl) ** 2
         else:
-            accl_reward -= (accl - self.prev_accl) ** 2
-        
+            accl_reward -= (self.prev_accl - accl) ** 2
+
         self.prev_accl = accl
         self.prev_speed = speed  # update the previous speed
 
@@ -266,20 +266,36 @@ def reward_function(params):
 
     time_spent_till_now = steps - 1 / 15
 
+    center_weight = 1
+    edge_weight = 1
+
+    if steering < 5:
+        center_weight += 3
+        edge_weight -= 0.5
+    elif steering < 10:
+        center_weight += 1
+        edge_weight += 1
+    elif steering < 15:
+        center_weight -= 0.5
+        edge_weight += 3
+        
+    progress_reward = 6 * progress
+    speed_reward = speed ** 2
+    accl_reward = 1 * reward_obj.acceleration(params)
+    edge_reward = (edge_weight * distance_from_center)
+    time_reward = 6 * time_spent_till_now
+    racing_dist_reward = 4 * dist
+    dir_reward = 3 * direction_diff
+    center_reward = (center_weight * distance_from_center)
+
     try:
-        reward += (((6 * progress) + (speed ** 2) + (2 * reward_obj.acceleration(params)))
-                   / ((6 * time_spent_till_now) + (4 * dist) + (0.5 * direction_diff) + (1 * distance_from_center)))
+        reward = (progress_reward + accl_reward + edge_reward) / (time_reward + racing_dist_reward + dir_reward + center_reward)
+        reward += speed_reward
     except:
         reward += 1e-6
-
-    new_reward = 0
-    if not is_offtrack and steps > 0:
-        new_reward = ((progress / steps) * 100) + (speed**2)
-    else:
-        new_reward = 1e-3
     # reward for making progress in less steps and fast
     # Penalize reward if the car is off track
-    if is_offtrack or distance_from_center > curb_width:
+    if is_offtrack:
         reward = 1e-12
 
-    return float(new_reward)
+    return float(reward)
