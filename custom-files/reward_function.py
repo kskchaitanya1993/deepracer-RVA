@@ -13,16 +13,18 @@ class Reward:
         accl = speed - self.prev_speed
         if (speed > self.prev_speed) and (self.prev_speed > 0.5):
             accl_reward = speed - self.prev_speed
-
+        accl_weight = 1
         if accl >= self.prev_accl:
-            accl_reward += (accl - self.prev_accl) ** 2
+            accl_weight += 1
         else:
-            accl_reward -= (self.prev_accl - accl) ** 2
+            accl_weight -=0.8
+        
+        accl_reward += abs(accl - self.prev_accl)
 
         self.prev_accl = accl
         self.prev_speed = speed  # update the previous speed
 
-        return accl_reward
+        return accl_weight * accl_reward
 
 
 reward_obj = Reward()
@@ -287,7 +289,7 @@ def reward_function(params):
     progress_reward = 6 * progress
     time_reward = 5 * time_spent_till_now
     speed_reward = speed ** 2
-    accl_reward = 1 * reward_obj.acceleration(params)
+    accl_reward = 4 * reward_obj.acceleration(params)
     edge_reward = (edge_weight * distance_from_center)
     racing_dist_reward = 4 * dist
     dir_reward = 3 * direction_diff
@@ -295,7 +297,7 @@ def reward_function(params):
 
     try:
         reward = (progress_reward + accl_reward + edge_reward) / (time_reward + racing_dist_reward + dir_reward + center_reward)
-        reward += 2 * speed_reward
+        reward += 4 * speed_reward
     except:
         reward += 1e-6
     # reward for making progress in less steps and fast
