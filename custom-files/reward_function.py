@@ -231,7 +231,7 @@ def reward_function(params):
     distance_from_center = params['distance_from_center']
     track_width = params['track_width']
     # Only need the absolute steering angle
-    steering = abs(params['steering_angle'])
+    steering = params['steering_angle']
     car_xy = [params['x'], params['y']]
     is_offtrack = params['is_offtrack']
     is_left_of_center = params['is_left_of_center']
@@ -268,22 +268,27 @@ def reward_function(params):
 
     center_weight = 1
     edge_weight = 1
+    # if turning left then higher reward for going close to edge | same for right turns
+    if (steering > 5 and is_left_of_center) or (steering < -5 and not is_left_of_center):
+        edge_weight += 1
+    else:
+        center_reward +=1
 
-    if steering < 5:
+    if -4 < steering < 4:
         center_weight += 3
         edge_weight -= 0.5
-    elif steering < 10:
+    elif -8 < steering < 8:
         center_weight += 1
         edge_weight += 1
-    elif steering < 15:
+    elif -12 < steering < 12:
         center_weight -= 0.5
         edge_weight += 3
         
     progress_reward = 6 * progress
+    time_reward = 5 * time_spent_till_now
     speed_reward = speed ** 2
     accl_reward = 1 * reward_obj.acceleration(params)
     edge_reward = (edge_weight * distance_from_center)
-    time_reward = 6 * time_spent_till_now
     racing_dist_reward = 4 * dist
     dir_reward = 3 * direction_diff
     center_reward = (center_weight * distance_from_center)
