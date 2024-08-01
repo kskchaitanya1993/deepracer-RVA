@@ -288,7 +288,7 @@ def reward_function(params):
         
     progress_reward = 6 * progress
     time_reward = 5 * time_spent_till_now
-    speed_reward = speed ** 2
+    speed_reward = 4 * speed ** 2
     accl_reward = 4 * reward_obj.acceleration(params)
     edge_reward = (edge_weight * distance_from_center)
     racing_dist_reward = 4 * dist
@@ -296,7 +296,11 @@ def reward_function(params):
     center_reward = (center_weight * distance_from_center)
 
     try:
-        reward = (progress_reward + accl_reward + edge_reward) / (time_reward + racing_dist_reward + dir_reward + center_reward)
+        # reward = (progress_reward + accl_reward + edge_reward) / (time_reward + racing_dist_reward + dir_reward + center_reward)
+        reward += progress_reward/time_reward
+        reward += accl_reward/dir_reward
+        reward += edge_reward/center_reward
+        reward += 1/racing_dist_reward
         reward += 4 * speed_reward
     except:
         reward += 1e-6
