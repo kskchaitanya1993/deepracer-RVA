@@ -48,7 +48,7 @@ def reward_function(params):
             reward += 20
         else:
             reward *= 0.5
-    reward += speed
+
     if params["steps"] > 0:
         reward += ((params["progress"] / params["steps"]) * 100  + params["speed"] ** 2)
     elif params["is_offtrack"]:
