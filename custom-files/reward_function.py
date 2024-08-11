@@ -32,23 +32,23 @@ def reward_function(params):
         reward *= 0.5
 
     if params["closest_waypoints"][1] in fast_speed:
-        if params["speed"] > 2.5 :
+        if params["speed"] > 3.0 :
             reward += 20
-        elif params["speed"] > 1.5:
+        elif params["speed"] > 2.0:
             reward += 10
         else:
             reward *= 0.5
     elif params["closest_waypoints"][1] in moderate_speed:
-        if params["speed"] > 1 and params["speed"] <= 1.5 :
+        if params["speed"] > 1.5 and params["speed"] <= 2.5 :
             reward += 20
         else:
             reward *= 0.5
     elif params["closest_waypoints"][1] in slow_speed:
-        if params["speed"] > 0.5 and params["speed"] <= 1 :
+        if params["speed"] > 0.5 and params["speed"] <= 2.0 :
             reward += 20
         else:
             reward *= 0.5
-
+    reward += speed
     if params["steps"] > 0:
         reward += ((params["progress"] / params["steps"]) * 100  + params["speed"] ** 2)
     elif params["is_offtrack"]:
