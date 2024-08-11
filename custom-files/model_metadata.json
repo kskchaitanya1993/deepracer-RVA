@@ -1,12 +1,12 @@
 {
     "action_space": {
         "steering_angle": {
-            "high": 20,
-            "low": -20
+            "high": 30,
+            "low": -30
         },
         "speed": {
             "high": 4.0,
-            "low": 0.8
+            "low": 0.5
         }
     },
     "sensor": [

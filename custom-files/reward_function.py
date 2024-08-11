@@ -4,27 +4,14 @@ import math
 class Reward:
     def __init__(self, verbose=False, track_time=False):
         self.prev_speed = 0
-        self.prev_accl = 0
 
     def acceleration(self, params):
         # speed diff
         speed = params['speed']
-        accl_reward = 1e-3
-        accl = speed - self.prev_speed
-        if (speed > self.prev_speed) and (self.prev_speed > 0.5):
-            accl_reward = speed - self.prev_speed
-        accl_weight = 1
-        if accl >= self.prev_accl:
-            accl_weight += 1
-        else:
-            accl_weight -=0.8
-        
-        accl_reward += abs(accl - self.prev_accl)
-
-        self.prev_accl = accl
+        accl_reward = speed - self.prev_speed
         self.prev_speed = speed  # update the previous speed
 
-        return accl_weight * accl_reward
+        return accl_reward
 
 
 reward_obj = Reward()
@@ -233,7 +220,7 @@ def reward_function(params):
     distance_from_center = params['distance_from_center']
     track_width = params['track_width']
     # Only need the absolute steering angle
-    steering = params['steering_angle']
+    steering = abs(params['steering_angle'])
     car_xy = [params['x'], params['y']]
     is_offtrack = params['is_offtrack']
     is_left_of_center = params['is_left_of_center']
@@ -268,45 +255,15 @@ def reward_function(params):
 
     time_spent_till_now = steps - 1 / 15
 
-    center_weight = 1
-    edge_weight = 1
-    # if turning left then higher reward for going close to edge | same for right turns
-    if (steering > 5 and is_left_of_center) or (steering < -5 and not is_left_of_center):
-        edge_weight += 1
-    else:
-        center_weight +=1
-
-    if -4 < steering < 4:
-        center_weight += 3
-        edge_weight -= 0.5
-    elif -8 < steering < 8:
-        center_weight += 1
-        edge_weight += 1
-    elif -12 < steering < 12:
-        center_weight -= 0.5
-        edge_weight += 3
-        
-    progress_reward = 6 * progress
-    time_reward = 5 * time_spent_till_now
-    speed_reward = 4 * speed ** 2
-    accl_reward = 4 * reward_obj.acceleration(params)
-    edge_reward = (edge_weight * distance_from_center)
-    racing_dist_reward = 4 * dist
-    dir_reward = 3 * direction_diff
-    center_reward = (center_weight * distance_from_center)
-
     try:
-        # reward = (progress_reward + accl_reward + edge_reward) / (time_reward + racing_dist_reward + dir_reward + center_reward)
-        reward += progress_reward/time_reward
-        reward += accl_reward/dir_reward
-        reward += edge_reward/center_reward
-        reward += 1/racing_dist_reward
-        reward += 4 * speed_reward
+        reward += (((5 * progress) + (4 * speed) + (2 * reward_obj.acceleration(params)))
+                   / ((5 * time_spent_till_now) + (4 * dist) + (3 * direction_diff) + (1.5 * distance_from_center)))
     except:
         reward += 1e-6
+
     # reward for making progress in less steps and fast
     # Penalize reward if the car is off track
-    if is_offtrack:
+    if is_offtrack or distance_from_center > curb_width:
         reward = 1e-12
 
     return float(reward)
