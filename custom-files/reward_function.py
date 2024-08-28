@@ -253,15 +253,16 @@ def reward_function(params):
     if direction_diff > 180:
         direction_diff = 360 - direction_diff
 
-    time_spent_till_now = steps - 1 / 15
+    time_spent_till_now = (steps - 1) / 15
+    expected_time_spend = (progress * 20 ) / 100
     
     try:
-        reward += (((5 * progress) + (4 * speed) + (2 * reward_obj.acceleration(params)))
-                   / ((5 * time_spent_till_now) + (4 * dist) + (3 * direction_diff) + (1 * distance_from_center)))
+        reward += (((4 * speed) + (2 * reward_obj.acceleration(params)))
+                   / ((4 * dist) + (3 * direction_diff) + (1 * distance_from_center)))
     except:
         reward += 1e-6
 
-    reward += 5 * (1 - time_spent_till_now/15)
+    reward += 5 * max(1e-6, 1 - time_spent_till_now/expected_time_spend)
     # reward for making progress in less steps and fast
     # Penalize reward if the car is off track
     if is_offtrack or distance_from_center > curb_width:
