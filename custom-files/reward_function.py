@@ -24,8 +24,10 @@ def reward_function(params):
     reward = 10
 
     if params["closest_waypoints"][1] in fast_speed:
-        if params["speed"] > 3.0 :
-            reward += 20
+        if speed > 3.5 :
+            reward += 25 + speed
+        elif speed > 3.0 :
+            reward += 20 + speed
 
     if params["steps"] > 0:
         reward += ((params["progress"] / params["steps"]) * 100  + params["speed"] ** 2)
@@ -33,7 +35,9 @@ def reward_function(params):
     if params["is_offtrack"]:
         reward = 1e-3
 
-    if steering > ABS_STEERING_THRESHOLD:
+    if (params["closest_waypoints"][1] in slow_speed) and steering > 15:
+        reward *= 0.5
+    elif steering > 10:
         reward *= 0.3
 
     return float(reward)
