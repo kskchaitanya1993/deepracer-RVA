@@ -11,14 +11,6 @@ class Reward:
         speed = params['speed']
         accl_reward = speed - self.prev_speed
         self.prev_speed = speed  # update the previous speed
-        if speed > 3.8 and self.prev_speed > 3.8:
-            accl_reward = 6
-        elif speed > 3.5 and self.prev_speed > 3.5:
-            accl_reward = 5
-        elif speed > 3 and self.prev_speed > 3:
-            accl_reward = 4
-        elif speed > 2.5 and self.prev_speed > 2.5:
-            accl_reward = 3
         
         return accl_reward
     
@@ -274,11 +266,14 @@ def reward_function(params):
     expected_time_spend = (progress * 20 ) / 100
 
     try:
-        reward += (( (5 * progress)+ (4 * speed) + (2 * reward_obj.acceleration(params)))
-                   / ((5 * time_spent_till_now) + (5 * dist) + (3 * reward_obj.steering(params)) + (3 * direction_diff) + (0.5 * distance_from_center)))
+        reward += (( (5 * progress) + (speed * speed))
+                   / ((5 * dist) + (4 * reward_obj.steering(params)) + (3 * direction_diff) + (3 * steps)))
     except:
         reward += 1e-6
 
+    if time_spent_till_now < expected_time_spend:
+        reward += 10 * (expected_time_spend - time_spent_till_now)
+    
     # reward for making progress in less steps and fast
     # Penalize reward if the car is off track
     if is_offtrack or distance_from_center > curb_width:
