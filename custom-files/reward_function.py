@@ -266,8 +266,8 @@ def reward_function(params):
     expected_time_spend = (progress * 20 ) / 100
 
     try:
-        reward += (( (5 * progress) + (speed * speed))
-                   / ((5 * dist) + (4 * reward_obj.steering(params)) + (3 * direction_diff) + (3 * steps)))
+        reward += (( (5 * progress) + (3 * speed * speed))
+                   / ((5 * dist) + (4 * reward_obj.steering(params)) + (3 * steps)))
     except:
         reward += 1e-6
 
