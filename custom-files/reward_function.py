@@ -23,30 +23,17 @@ def reward_function(params):
     slow_speed = [11,12,13,14,15,16,17,18, 45,46,47,48,49,50,51,52,53, 93,94,9,96,97,98,99,100,101,102,103,104,105,106,107, 133,134,135,136,137,138,139,140,66,67,68,69,70,71,72,73,7,4,75,76]
     reward = 10
 
-    if params["closest_waypoints"][1] in left_lane and params["is_left_of_center"]:
-       reward += 10
-    elif params["closest_waypoints"][1] in right_lane and not params["is_left_of_center"]:
-       reward += 10
-    elif params["closest_waypoints"][1] in center_lane and center_variance < 0.4:
-       reward += 10
-    else:
-       reward *= 0.5
-
-    reward += speed ** speed
+    if params["closest_waypoints"][1] in fast_speed:
+        if params["speed"] > 3.0 :
+            reward += 20
 
     if params["steps"] > 0:
         reward += ((params["progress"] / params["steps"]) * 100  + params["speed"] ** 2)
     
-    time_spent_till_now = (steps - 1) / 15
-    expected_time_spend = (progress * BENCHMARK_TIME ) / 100
+    if params["is_offtrack"]:
+        reward = 1e-3
 
-    if time_spent_till_now < expected_time_spend:
-        reward += 10 * (expected_time_spend - time_spent_till_now)
-    
     if steering > ABS_STEERING_THRESHOLD:
         reward *= 0.3
-        
-    if params["is_offtrack"]:
-        reward = 1e-12
 
     return float(reward)
