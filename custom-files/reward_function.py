@@ -4,14 +4,31 @@ import math
 class Reward:
     def __init__(self, verbose=False, track_time=False):
         self.prev_speed = 0
+        self.prev_steering = 0
 
     def acceleration(self, params):
         # speed diff
         speed = params['speed']
         accl_reward = speed - self.prev_speed
         self.prev_speed = speed  # update the previous speed
-
+        if speed > 3.8 and self.prev_speed > 3.8:
+            accl_reward = 6
+        elif speed > 3.5 and self.prev_speed > 3.5:
+            accl_reward = 5
+        elif speed > 3 and self.prev_speed > 3:
+            accl_reward = 4
+        elif speed > 2.5 and self.prev_speed > 2.5:
+            accl_reward = 3
+        
         return accl_reward
+    
+    def steering(self, params):
+        # steering diff
+        steering = abs(params['steering_angle'])
+        steering_reward = abs(steering - self.prev_steering)
+        self.prev_steering = steering  # update the previous steering
+        
+        return steering_reward
 
 
 reward_obj = Reward()
@@ -255,10 +272,10 @@ def reward_function(params):
 
     time_spent_till_now = (steps - 1) / 15
     expected_time_spend = (progress * 20 ) / 100
-    
+
     try:
         reward += (( (5 * progress)+ (4 * speed) + (2 * reward_obj.acceleration(params)))
-                   / ((5 * time_spent_till_now) + (4 * dist) + (3 * direction_diff) + (0.5 * distance_from_center)))
+                   / ((5 * time_spent_till_now) + (5 * dist) + (3 * reward_obj.steering(params)) + (3 * direction_diff) + (0.5 * distance_from_center)))
     except:
         reward += 1e-6
 
