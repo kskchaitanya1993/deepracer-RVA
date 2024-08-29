@@ -16,7 +16,7 @@ class Reward:
     
     def steering(self, params):
         # steering diff
-        steering = abs(params['steering_angle'])
+        steering = params['steering_angle']
         steering_reward = abs(steering - self.prev_steering)
         self.prev_steering = steering  # update the previous steering
         
