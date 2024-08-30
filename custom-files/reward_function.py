@@ -58,7 +58,7 @@ def reward_function(params):
     if params["is_offtrack"]:
         reward = 1e-6
     elif params["progress"] > 0 and params["steps"] > 0:
-        reward = ((params["progress"] / params["steps"]) * 100) + (speed**2)
+        reward += ((params["progress"] / params["steps"]) * 100) + (speed**2)
     else:
         reward *= 1e-3
 
